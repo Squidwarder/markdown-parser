@@ -58,6 +58,9 @@ public class MarkdownParse {
 
         while(currentIndex < markdown.length()) {
             int nextOpenBracket = markdown.indexOf("[", currentIndex);
+
+            int nextHref = markdown.indexOf("href=\"", currentIndex);
+
             int nextCodeBlock = markdown.indexOf("\n```");
             if(nextCodeBlock < nextOpenBracket && nextCodeBlock != -1) {
                 int endOfCodeBlock = markdown.indexOf("\n```");
@@ -67,6 +70,9 @@ public class MarkdownParse {
 
                 continue;
             }
+
+            int nextHrefEnd = markdown.indexOf("\">", nextHref);
+
             int nextCloseBracket = markdown.indexOf("]", nextOpenBracket);
             int openParen = markdown.indexOf("(", nextCloseBracket);
 
@@ -75,17 +81,36 @@ public class MarkdownParse {
             
             if(nextOpenBracket == -1 || nextCloseBracket == -1
                   || closeParen == -1 || openParen == -1) {
-                return toReturn;
+                if (nextHref == -1 || (nextHref != -1 && nextHrefEnd == -1)){
+                    return toReturn;
+                }
             }
+
             String potentialLink = markdown.substring(openParen + 1, closeParen).trim();
+
+            boolean hasHref = false;
+            String potentialLink2 = "placeholder";
+            if (nextHref != -1 && nextHrefEnd != -1){
+                potentialLink2 = markdown.substring(nextHref + 6, nextHrefEnd).trim();
+                hasHref = true;
+            }
+
             if(potentialLink.indexOf(" ") == -1 && potentialLink.indexOf("\n") == -1) {
                 toReturn.add(potentialLink);
                 currentIndex = closeParen + 1;
 
                 System.out.println(currentIndex);
 
-            }
-            else {
+                if (hasHref) {
+                    if (potentialLink2.indexOf(" ") == -1 && potentialLink.indexOf("\n") == -1) {
+                        toReturn.add(potentialLink2);
+                        currentIndex = nextHrefEnd + 1;
+
+                        System.out.println(currentIndex);
+                    }
+                }
+
+            } else {
                 currentIndex = currentIndex + 1;
 
                 System.out.println(currentIndex);
